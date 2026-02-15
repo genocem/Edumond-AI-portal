@@ -1,0 +1,399 @@
+{
+  "courses": {
+    "language_courses": [
+      {
+        "id": "cours-allemand",
+        "name": "Cours d'Allemand",
+        "description": "Comprehensive German language course from beginner to advanced levels. Covers grammar, vocabulary, conversation, and cultural immersion to prepare students for study and work in Germany.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "8–12 étudiants",
+        "levels": ["A1", "A2", "B1", "B2", "C1"],
+        "duration": {
+          "A1": "2 months",
+          "A2": "2 months",
+          "B1": "3 months",
+          "B2": "3 months",
+          "C1": "4 months"
+        },
+        "curriculum_highlights": [
+          "Grammar and syntax fundamentals",
+          "Conversational practice with native speakers",
+          "Listening and reading comprehension",
+          "Writing workshops",
+          "Cultural awareness sessions",
+          "Exam preparation (Goethe/TestDaF)"
+        ],
+        "countries": ["germany"],
+        "category": "language"
+      },
+      {
+        "id": "cours-italien",
+        "name": "Cours d'Italien",
+        "description": "Italian language program designed to build strong communication skills. From basic phrases to academic proficiency, ideal for students planning to study in Italy.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "8–12 étudiants",
+        "levels": ["A1", "A2", "B1", "B2"],
+        "duration": {
+          "A1": "2 months",
+          "A2": "2 months",
+          "B1": "3 months",
+          "B2": "3 months"
+        },
+        "curriculum_highlights": [
+          "Italian grammar essentials",
+          "Pronunciation and phonetics",
+          "Conversational Italian",
+          "Reading and writing practice",
+          "Italian culture and society",
+          "CILS/CELI exam preparation"
+        ],
+        "countries": ["italy"],
+        "category": "language"
+      },
+      {
+        "id": "cours-espagnol",
+        "name": "Cours d'Espagnol",
+        "description": "Spanish language course covering all essential skills. Perfect for students aiming to study or work in Spain with native-level instruction.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "8–12 étudiants",
+        "levels": ["A1", "A2", "B1", "B2"],
+        "duration": {
+          "A1": "2 months",
+          "A2": "2 months",
+          "B1": "3 months",
+          "B2": "3 months"
+        },
+        "curriculum_highlights": [
+          "Spanish grammar from basics to advanced",
+          "Speaking and listening exercises",
+          "Written communication",
+          "Spanish-speaking cultural immersion",
+          "DELE exam preparation"
+        ],
+        "countries": ["spain"],
+        "category": "language"
+      },
+      {
+        "id": "cours-anglais",
+        "name": "Cours d'Anglais",
+        "description": "General English language program suitable for all destinations. Builds fluency for academic, professional, and everyday communication.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "8–15 étudiants",
+        "levels": ["A1", "A2", "B1", "B2", "C1", "C2"],
+        "duration": {
+          "A1": "2 months",
+          "A2": "2 months",
+          "B1": "2 months",
+          "B2": "3 months",
+          "C1": "3 months",
+          "C2": "4 months"
+        },
+        "curriculum_highlights": [
+          "Core grammar and vocabulary",
+          "Academic English skills",
+          "Business English module",
+          "IELTS/TOEFL preparation",
+          "Conversation clubs",
+          "Writing workshops"
+        ],
+        "countries": ["germany", "italy", "spain", "belgium", "turkey"],
+        "category": "language"
+      },
+      {
+        "id": "cours-turc",
+        "name": "Cours de Turc",
+        "description": "Turkish language course for students planning to study or work in Turkey. From basic greetings to academic Turkish proficiency.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "8–12 étudiants",
+        "levels": ["A1", "A2", "B1", "B2"],
+        "duration": {
+          "A1": "2 months",
+          "A2": "2 months",
+          "B1": "3 months",
+          "B2": "3 months"
+        },
+        "curriculum_highlights": [
+          "Turkish grammar and sentence structure",
+          "Everyday conversational Turkish",
+          "Reading comprehension",
+          "Cultural orientation",
+          "TYS exam preparation"
+        ],
+        "countries": ["turkey"],
+        "category": "language"
+      },
+      {
+        "id": "cours-francais",
+        "name": "Cours de Français",
+        "description": "French language program for students heading to Belgium or other francophone destinations. Covers all levels from beginner to advanced.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "8–12 étudiants",
+        "levels": ["A1", "A2", "B1", "B2", "C1"],
+        "duration": {
+          "A1": "2 months",
+          "A2": "2 months",
+          "B1": "3 months",
+          "B2": "3 months",
+          "C1": "4 months"
+        },
+        "curriculum_highlights": [
+          "French grammar fundamentals",
+          "Oral communication practice",
+          "Written expression",
+          "French culture and civilization",
+          "DELF/DALF/TCF preparation"
+        ],
+        "countries": ["belgium"],
+        "category": "language"
+      }
+    ],
+    "test_preparation_courses": [
+      {
+        "id": "prep-ielts",
+        "name": "IELTS Preparation",
+        "description": "Intensive IELTS preparation course covering all four skills: Listening, Reading, Writing, and Speaking. Target score: 6.5+",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "6–10 étudiants",
+        "levels": ["B1+"],
+        "duration": { "standard": "2 months" },
+        "curriculum_highlights": [
+          "Full-length practice tests",
+          "Writing Task 1 & Task 2 strategies",
+          "Speaking mock interviews",
+          "Listening techniques",
+          "Time management skills",
+          "Vocabulary building"
+        ],
+        "countries": ["germany", "italy", "spain", "belgium", "turkey"],
+        "category": "test_prep"
+      },
+      {
+        "id": "prep-toefl",
+        "name": "TOEFL Preparation",
+        "description": "Comprehensive TOEFL iBT preparation with focus on academic English skills needed for university admission.",
+        "price": null,
+        "format": "En ligne",
+        "capacity": "6–10 étudiants",
+        "levels": ["B1+"],
+        "duration": { "standard": "2 months" },
+        "curriculum_highlights": [
+          "Reading comprehension strategies",
+          "Integrated writing tasks",
+          "Speaking response preparation",
+          "Note-taking skills",
+          "Computer-based test simulation"
+        ],
+        "countries": ["germany", "italy", "spain", "belgium", "turkey"],
+        "category": "test_prep"
+      },
+      {
+        "id": "prep-testdaf",
+        "name": "TestDaF Preparation",
+        "description": "Targeted preparation for the TestDaF exam, required for university admission in Germany. Focus on academic German skills.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "6–8 étudiants",
+        "levels": ["B2+"],
+        "duration": { "standard": "3 months" },
+        "curriculum_highlights": [
+          "Academic reading comprehension",
+          "Scientific listening exercises",
+          "Written argumentation",
+          "Oral presentation skills",
+          "TestDaF-specific exam strategies"
+        ],
+        "countries": ["germany"],
+        "category": "test_prep"
+      },
+      {
+        "id": "prep-goethe",
+        "name": "Goethe-Zertifikat Preparation",
+        "description": "Preparation for Goethe-Institut exams from A1 to C1 level. Recognized worldwide as proof of German language proficiency.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "6–8 étudiants",
+        "levels": ["A1", "A2", "B1", "B2", "C1"],
+        "duration": {
+          "A1": "1 month",
+          "A2": "1 month",
+          "B1": "2 months",
+          "B2": "2 months",
+          "C1": "3 months"
+        },
+        "curriculum_highlights": [
+          "Exam format familiarization",
+          "Practice tests with feedback",
+          "Speaking partner exercises",
+          "Writing correction sessions",
+          "Test-taking strategies"
+        ],
+        "countries": ["germany"],
+        "category": "test_prep"
+      }
+    ],
+    "other_training_categories": [
+      {
+        "id": "formation-informatique",
+        "name": "Formation en Informatique",
+        "description": "Practical IT training covering web development, data analysis, and software engineering fundamentals. Industry-ready curriculum.",
+        "price": null,
+        "format": "Présentiel/En ligne",
+        "capacity": "10–15 étudiants",
+        "levels": ["Beginner", "Intermediate", "Advanced"],
+        "duration": { "standard": "6 months" },
+        "curriculum_highlights": [
+          "Web development (HTML, CSS, JavaScript)",
+          "Python programming",
+          "Database management",
+          "Software engineering principles",
+          "Project-based learning",
+          "Portfolio development"
+        ],
+        "countries": ["germany", "italy", "spain", "belgium", "turkey"],
+        "category": "training"
+      },
+      {
+        "id": "formation-commerce",
+        "name": "Formation en Commerce International",
+        "description": "International business training covering trade, marketing, and cross-cultural business communication.",
+        "price": null,
+        "format": "Présentiel",
+        "capacity": "10–15 étudiants",
+        "levels": ["Beginner", "Intermediate"],
+        "duration": { "standard": "4 months" },
+        "curriculum_highlights": [
+          "International trade fundamentals",
+          "Marketing strategies",
+          "Cross-cultural communication",
+          "Business negotiation",
+          "Import/export procedures",
+          "Business plan development"
+        ],
+        "countries": ["germany", "belgium", "turkey"],
+        "category": "training"
+      },
+      {
+        "id": "formation-hotellerie",
+        "name": "Formation en Hôtellerie et Tourisme",
+        "description": "Hospitality and tourism training providing practical skills for hotel management, customer service, and tourism operations.",
+        "price": null,
+        "format": "Présentiel",
+        "capacity": "8–12 étudiants",
+        "levels": ["Beginner", "Intermediate"],
+        "duration": { "standard": "4 months" },
+        "curriculum_highlights": [
+          "Hotel operations management",
+          "Customer service excellence",
+          "Tourism marketing",
+          "Event planning",
+          "Food & beverage management",
+          "Internship placement"
+        ],
+        "countries": ["italy", "spain", "turkey"],
+        "category": "training"
+      }
+    ]
+  },
+  "other_services": {
+    "etudes_a_l_etranger": {
+      "id": "etudes-etranger",
+      "name": "Études à l'Étranger",
+      "description": "Complete study abroad service including university selection, application assistance, visa support, and pre-departure orientation.",
+      "countries": {
+        "germany": {
+          "programs": [
+            "Bachelor's programs (3-4 years)",
+            "Master's programs (1-2 years)",
+            "Studienkolleg preparation",
+            "Foundation year programs"
+          ],
+          "requirements": ["B2 German or B2 English", "High school diploma", "Motivation letter"],
+          "benefits": ["Tuition-free public universities", "Work permit (20h/week)", "Post-study work visa"]
+        },
+        "italy": {
+          "programs": [
+            "Bachelor's programs (3 years)",
+            "Master's programs (2 years)",
+            "Art & Design schools",
+            "Foundation programs"
+          ],
+          "requirements": ["B1 Italian or B2 English", "High school diploma", "Portfolio (for art)"],
+          "benefits": ["Low tuition fees", "Scholarship opportunities", "Rich cultural experience"]
+        },
+        "spain": {
+          "programs": [
+            "Bachelor's programs (4 years)",
+            "Master's programs (1-2 years)",
+            "Language + university programs"
+          ],
+          "requirements": ["B1 Spanish or B2 English", "High school diploma", "Selectividad exam"],
+          "benefits": ["Affordable living", "Diverse programs", "Vibrant student life"]
+        },
+        "belgium": {
+          "programs": [
+            "Bachelor's programs (3 years)",
+            "Master's programs (1-2 years)",
+            "Haute école programs"
+          ],
+          "requirements": ["B2 French or B2 English", "High school diploma", "Equivalence diploma"],
+          "benefits": ["Central European location", "Multilingual environment", "Quality education"]
+        },
+        "turkey": {
+          "programs": [
+            "Bachelor's programs (4 years)",
+            "Master's programs (2 years)",
+            "YOS preparation + university"
+          ],
+          "requirements": ["B1 Turkish or B2 English", "High school diploma", "YOS exam"],
+          "benefits": ["Affordable tuition", "Scholarship programs", "Growing economy"]
+        }
+      }
+    },
+    "ausbildung_en_allemagne": {
+      "id": "ausbildung-allemagne",
+      "name": "Ausbildung en Allemagne",
+      "description": "Vocational training (Ausbildung) program in Germany combining classroom learning with practical work experience. Duration: 2-3.5 years.",
+      "fields": [
+        {
+          "id": "ausbildung-sante",
+          "name": "Santé / Healthcare",
+          "roles": ["Nursing (Pflegefachkraft)", "Medical assistant", "Dental assistant"],
+          "duration": "3 years",
+          "requirements": ["B1 German minimum", "Health certificate"],
+          "salary_range": "800–1,200€/month during training"
+        },
+        {
+          "id": "ausbildung-tech",
+          "name": "Technologie / IT",
+          "roles": ["IT specialist (Fachinformatiker)", "Electronics technician", "Mechatronics"],
+          "duration": "3-3.5 years",
+          "requirements": ["B1 German minimum", "Technical aptitude"],
+          "salary_range": "900–1,300€/month during training"
+        },
+        {
+          "id": "ausbildung-hotel",
+          "name": "Hôtellerie / Hospitality",
+          "roles": ["Hotel manager trainee", "Chef (Koch)", "Restaurant specialist"],
+          "duration": "2-3 years",
+          "requirements": ["B1 German minimum"],
+          "salary_range": "700–1,100€/month during training"
+        },
+        {
+          "id": "ausbildung-commerce",
+          "name": "Commerce / Business",
+          "roles": ["Retail salesperson", "Office management", "Banking clerk"],
+          "duration": "2-3 years",
+          "requirements": ["B1 German minimum"],
+          "salary_range": "800–1,200€/month during training"
+        }
+      ]
+    }
+  }
+}
