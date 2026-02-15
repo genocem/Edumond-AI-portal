@@ -1,408 +1,475 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Loader2, CheckCircle2, UserPlus, Calendar, Sparkles } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Bot,
+  User,
+  CheckCircle2,
+  Calendar,
+  UserPlus,
+  Star,
+  ArrowRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { AssistantAvatar } from "@/components/avatars/AssistantAvatar";
-import { ChatMessage } from "@/components/questionnaire/ChatMessage";
-import { WorldMap } from "@/components/questionnaire/WorldMap";
-import { LanguageSelector } from "@/components/questionnaire/LanguageSelector";
 import { ProgramCard } from "@/components/questionnaire/ProgramCard";
 import { TimeSlotPicker } from "@/components/questionnaire/TimeSlotPicker";
 import { useQuestionnaireStore } from "@/lib/store";
-import { GOALS, COUNTRIES } from "@/types";
-import type { AvatarCountry, Goal, Country, CEFRLevel } from "@/types";
-import coursesData from "@/data/courses.json";
-import type { CourseData } from "@/types";
 import { trpc } from "@/lib/trpc";
-
-const TOTAL_STEPS = 6;
-
-function getAllCourses(): CourseData[] {
-  const courses: CourseData[] = [];
-  courses.push(...(coursesData.courses.language_courses as unknown as CourseData[]));
-  courses.push(...(coursesData.courses.test_preparation_courses as unknown as CourseData[]));
-  courses.push(...(coursesData.courses.other_training_categories as unknown as CourseData[]));
-  return courses;
-}
+import { COUNTRIES } from "@/types";
+import type { AvatarCountry } from "@/types";
 
 export default function QuestionnairePage() {
   const router = useRouter();
   const { data: session } = useSession();
   const store = useQuestionnaireStore();
+  const [input, setInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const chatMutation = trpc.ai.chat.useMutation();
+  const greetingQuery = trpc.ai.greeting.useQuery(undefined, {
+    enabled: store.messages.length === 0,
+    refetchOnWindowFocus: false,
+  });
 
   const meetingMutation = trpc.meetings.create.useMutation();
-  const [completed, setCompleted] = useState(false);
+  const saveResponsesMutation = trpc.questionnaire.saveResponses.useMutation();
 
-  const avatarCountry: AvatarCountry = store.country || "default";
+  const avatarCountry: AvatarCountry =
+    (store.extracted.country as AvatarCountry) || "default";
 
-  const getCountryLanguageName = useCallback(() => {
-    const country = COUNTRIES.find((c) => c.code === store.country);
-    return country?.nativeLanguage || "the local language";
-  }, [store.country]);
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [store.messages, store.phase, store.isLoading]);
 
-  const getFilteredCourses = useCallback(() => {
-    if (!store.country) return [];
-    return getAllCourses().filter((c) =>
-      c.countries.includes(store.country!)
-    );
-  }, [store.country]);
+  // Load the AI greeting when first visiting
+  useEffect(() => {
+    if (greetingQuery.data && store.messages.length === 0) {
+      store.addMessage({ role: "assistant", content: greetingQuery.data.reply });
+      store.setPhase(greetingQuery.data.phase);
+      if (greetingQuery.data.extracted) {
+        store.setExtracted(greetingQuery.data.extracted);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [greetingQuery.data]);
 
-  const canProceed = () => {
-    switch (store.currentStep) {
-      case 0: return !!store.goal;
-      case 1: return !!store.country;
-      case 2: return !!store.englishLevel;
-      case 3: return !!store.nativeLevel;
-      case 4: return store.selectedPrograms.length > 0;
-      case 5: return !!store.meetingDatetime;
-      default: return false;
+  // Focus input when phase changes
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [store.phase]);
+
+  /** Send a user message and get the AI's guided response. */
+  const sendMessage = useCallback(async () => {
+    if (!input.trim() || store.isLoading) return;
+
+    const userMsg = input.trim();
+    setInput("");
+    store.addMessage({ role: "user", content: userMsg });
+    store.setIsLoading(true);
+
+    try {
+      // Build messages array for the API (only role + content)
+      const apiMessages = [
+        ...store.messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: "user" as const, content: userMsg },
+      ];
+
+      const result = await chatMutation.mutateAsync({
+        messages: apiMessages,
+        currentData: store.extracted,
+      });
+
+      store.addMessage({ role: "assistant", content: result.reply });
+      store.setPhase(result.phase);
+      store.setExtracted(result.extracted);
+
+      // If we got recommendations, store them
+      if (result.recommendations && result.recommendations.length > 0) {
+        store.setRecommendations(result.recommendations);
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      store.addMessage({
+        role: "assistant",
+        content:
+          "Sorry, I had a hiccup! Could you try that again? 😅",
+      });
+    } finally {
+      store.setIsLoading(false);
+    }
+  }, [input, store, chatMutation]);
+
+  /** Handle pressing Enter in the input. */
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   };
 
-  const handleFinish = async () => {
-    setSaving(true);
-    try {
-      if (session?.user) {
-        // Authenticated: save meeting to database
-        if (store.meetingDatetime) {
-          await meetingMutation.mutateAsync({
-            datetime: store.meetingDatetime,
-            notes: `Goal: ${store.goal}, Country: ${store.country}, English: ${store.englishLevel}`,
+  /** When user clicks "Schedule Meeting" after picking a time slot. */
+  const handleScheduleMeeting = async () => {
+    if (!store.meetingDatetime) return;
+
+    if (session?.user) {
+      // User is logged in — save everything to DB immediately
+      setSaving(true);
+      try {
+        // Save questionnaire responses
+        if (store.extracted.goal && store.extracted.country) {
+          await saveResponsesMutation.mutateAsync({
+            goal: store.extracted.goal as "study_abroad" | "job" | "training",
+            country: store.extracted.country,
+            englishLevel: store.extracted.englishLevel || "B1",
+            nativeLevel: store.extracted.nativeLevel || undefined,
+            selectedPrograms: store.selectedPrograms,
           });
         }
-        router.push("/profile");
-        store.reset();
-      } else {
-        // Unauthenticated: show completion summary with sign-up prompt
-        setCompleted(true);
+
+        // Save meeting
+        await meetingMutation.mutateAsync({
+          datetime: store.meetingDatetime,
+          notes: `Goal: ${store.extracted.goal}, Country: ${store.extracted.country}, English: ${store.extracted.englishLevel}`,
+        });
+
+        store.addMessage({
+          role: "assistant",
+          content:
+            "Your meeting is booked! 🎉 Head to your profile to see all the details. We're excited to help you on your journey!",
+        });
+        store.setPhase("schedule_meeting");
+
+        // Redirect to profile after a moment
+        setTimeout(() => {
+          store.reset();
+          router.push("/profile");
+        }, 2000);
+      } catch (err) {
+        console.error("Error saving:", err);
+        store.addMessage({
+          role: "assistant",
+          content: "Something went wrong saving your meeting. Please try again!",
+        });
+      } finally {
+        setSaving(false);
       }
-    } catch (err) {
-      console.error("Error saving:", err);
-    } finally {
-      setSaving(false);
+    } else {
+      // Not logged in — prompt to create an account
+      store.setPhase("schedule_meeting");
+      store.addMessage({
+        role: "assistant",
+        content:
+          "Awesome, you've picked a time! 🎉 To confirm your meeting and save your personalized recommendations, let's get you set up with an account — it only takes a moment!",
+      });
     }
   };
 
-  const stepVariants = {
-    enter: { opacity: 0, x: 50 },
-    center: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 },
-  };
+  /** The progress indicator based on what data we've collected. */
+  const progressSteps = [
+    { label: "Goal", done: !!store.extracted.goal },
+    { label: "Country", done: !!store.extracted.country },
+    { label: "English", done: !!store.extracted.englishLevel },
+    { label: "Native", done: !!store.extracted.nativeLevel },
+    { label: "Programs", done: store.recommendations.length > 0 },
+    { label: "Meeting", done: !!store.meetingDatetime },
+  ];
+  const completedCount = progressSteps.filter((s) => s.done).length;
 
-  // Completion screen for unauthenticated users
-  if (completed && !session?.user) {
-    return (
-      <div className="min-h-[calc(100vh-10rem)] py-8 px-4">
-        <div className="mx-auto max-w-3xl">
-          <div className="bg-card border border-border rounded-2xl p-8">
+  return (
+    <div className="min-h-[calc(100vh-10rem)] py-4 px-4">
+      <div className="mx-auto max-w-3xl flex flex-col h-[calc(100vh-12rem)]">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4 shrink-0">
+          <AssistantAvatar country={avatarCountry} size="sm" />
+          <div className="flex-1">
+            <h1 className="text-lg font-semibold text-foreground">
+              Your Orientation Assistant
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              Chat with me to find your perfect program
+            </p>
+          </div>
+          {/* Mini progress dots */}
+          <div className="flex items-center gap-1.5">
+            {progressSteps.map((step, i) => (
+              <div
+                key={i}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  step.done
+                    ? "bg-accent scale-110"
+                    : "bg-border"
+                }`}
+                title={step.label}
+              />
+            ))}
+            <span className="text-xs text-muted-foreground ml-1">
+              {completedCount}/{progressSteps.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Chat Messages */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto bg-card border border-border rounded-2xl p-4 space-y-1"
+        >
+          <AnimatePresence initial={false}>
+            {store.messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`flex gap-2.5 mb-4 ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                {msg.role === "assistant" && (
+                  <div className="shrink-0 mt-1">
+                    <div className="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-accent" />
+                    </div>
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    msg.role === "assistant"
+                      ? "bg-muted/50 text-foreground rounded-bl-sm"
+                      : "bg-accent text-white rounded-br-sm"
+                  }`}
+                >
+                  {msg.content}
+                </div>
+                {msg.role === "user" && (
+                  <div className="shrink-0 mt-1">
+                    <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center">
+                      <User className="w-4 h-4 text-accent" />
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {/* Loading indicator */}
+          {store.isLoading && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex gap-2.5 mb-4"
             >
-              <div className="flex justify-center">
-                <AssistantAvatar country={avatarCountry} size="lg" />
+              <div className="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4 text-accent" />
               </div>
-
-              <div>
-                <div className="flex justify-center mb-3">
-                  <CheckCircle2 className="h-12 w-12 text-green-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-foreground">
-                  Great job! Your orientation is complete 🎉
-                </h2>
-                <p className="mt-2 text-muted-foreground">
-                  Here&apos;s a summary of what we found for you.
-                </p>
-              </div>
-
-              {/* Summary Cards */}
-              <div className="grid gap-4 sm:grid-cols-2 text-left">
-                <div className="bg-background border border-border rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-5 w-5 text-accent" />
-                    <h3 className="font-semibold text-foreground">Your Profile</h3>
-                  </div>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>🎯 Goal: <span className="text-foreground">{GOALS.find(g => g.value === store.goal)?.label}</span></li>
-                    <li>🌍 Country: <span className="text-foreground">{COUNTRIES.find(c => c.code === store.country)?.name}</span></li>
-                    <li>🇬🇧 English: <span className="text-foreground">{store.englishLevel?.toUpperCase()}</span></li>
-                    <li>🗣️ Local Language: <span className="text-foreground">{store.nativeLevel?.toUpperCase()}</span></li>
-                  </ul>
-                </div>
-
-                <div className="bg-background border border-border rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="h-5 w-5 text-accent" />
-                    <h3 className="font-semibold text-foreground">Selected</h3>
-                  </div>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>📚 Programs: <span className="text-foreground">{store.selectedPrograms.length} selected</span></li>
-                    {store.meetingDatetime && (
-                      <li>📅 Meeting: <span className="text-foreground">{new Date(store.meetingDatetime).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></li>
-                    )}
-                  </ul>
+              <div className="bg-muted/50 rounded-2xl rounded-bl-sm px-4 py-3">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
+            </motion.div>
+          )}
 
-              {/* Sign Up Prompt */}
-              <div className="bg-accent/5 border border-accent/20 rounded-xl p-6 space-y-4">
+          {/* ========== RECOMMENDATIONS SECTION ========== */}
+          {store.recommendations.length > 0 && store.phase === "recommend" && !store.recommendationsShown && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3 mt-4"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Star className="h-4 w-4 text-accent" />
+                Here are your top matches — tap to select the ones you like:
+              </div>
+              {store.recommendations.map((rec) => (
+                <ProgramCard
+                  key={rec.courseId}
+                  course={{
+                    id: rec.courseId,
+                    name: rec.courseName,
+                    description: rec.description,
+                    format: rec.format,
+                    levels: rec.levels,
+                    price: null,
+                    capacity: "",
+                    duration: {},
+                    curriculum_highlights: [],
+                    countries: [],
+                    category: rec.category,
+                  }}
+                  selected={store.selectedPrograms.includes(rec.courseId)}
+                  onToggle={store.toggleProgram}
+                  matchScore={rec.matchScore}
+                />
+              ))}
+
+              {store.selectedPrograms.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="pt-2"
+                >
+                  <Button
+                    onClick={() => {
+                      store.setRecommendationsShown(true);
+                      store.addMessage({
+                        role: "assistant",
+                        content: `Great picks! You selected ${store.selectedPrograms.length} program${store.selectedPrograms.length > 1 ? "s" : ""}. 📅 Now let's schedule a meeting with one of our orientation experts to discuss your options and get you started!`,
+                      });
+                    }}
+                    className="w-full"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Continue with {store.selectedPrograms.length} selected
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ========== MEETING SCHEDULER ========== */}
+          {store.recommendationsShown && !store.meetingDatetime && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 space-y-3"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Calendar className="h-4 w-4 text-accent" />
+                Pick a date and time that works for you:
+              </div>
+              <TimeSlotPicker
+                onSelect={store.setMeetingDatetime}
+                selected={store.meetingDatetime}
+              />
+            </motion.div>
+          )}
+
+          {/* Show confirm button once meeting time is selected */}
+          {store.meetingDatetime && store.phase !== "schedule_meeting" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4"
+            >
+              <Button
+                onClick={handleScheduleMeeting}
+                disabled={saving}
+                className="w-full"
+                size="lg"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Booking...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Confirm Meeting
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          )}
+
+          {/* ========== SIGN-UP PROMPT (unauthenticated) ========== */}
+          {store.phase === "schedule_meeting" && !session?.user && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6"
+            >
+              <div className="bg-accent/5 border border-accent/20 rounded-xl p-6 space-y-4 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <UserPlus className="h-5 w-5 text-accent" />
-                  <h3 className="font-semibold text-foreground">Save your results &amp; book your meeting</h3>
+                  <h3 className="font-semibold text-foreground">
+                    Create your account to confirm
+                  </h3>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Create a free account to save your recommendations, book your orientation meeting, and track your progress.
+                  Sign up to save your meeting, recommendations, and track
+                  your progress — it takes less than a minute.
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
-                  <Link href="/auth/register?callbackUrl=/questionnaire">
+                  <Link href="/auth/register?callbackUrl=/questionnaire&from=chat">
                     <Button size="lg">
                       <UserPlus className="h-4 w-4 mr-2" />
                       Create Free Account
                     </Button>
                   </Link>
-                  <Link href="/auth/login?callbackUrl=/questionnaire">
+                  <Link href="/auth/login?callbackUrl=/questionnaire&from=chat">
                     <Button variant="outline" size="lg">
                       Already have an account? Sign In
                     </Button>
                   </Link>
                 </div>
               </div>
-
-              {/* Restart option */}
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setCompleted(false);
-                  store.reset();
-                }}
-                className="text-muted-foreground"
-              >
-                ← Start Over
-              </Button>
             </motion.div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-[calc(100vh-10rem)] py-8 px-4">
-      <div className="mx-auto max-w-3xl">
-        {/* Header with avatar and progress */}
-        <div className="flex items-center gap-4 mb-6">
-          <AssistantAvatar country={avatarCountry} size="sm" />
-          <div className="flex-1">
-            <ProgressBar current={store.currentStep + 1} total={TOTAL_STEPS} />
-          </div>
+          )}
         </div>
 
-        {/* Chat-style questionnaire */}
-        <div className="bg-card border border-border rounded-2xl p-6 min-h-[500px] flex flex-col">
-          <div className="flex-1">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={store.currentStep}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-                className="space-y-4"
-              >
-                {/* Step 0: Goal Selection */}
-                {store.currentStep === 0 && (
-                  <>
-                    <ChatMessage type="assistant">
-                      <p className="font-medium">
-                        Welcome! 👋 I&apos;m your orientation assistant.
-                      </p>
-                      <p className="mt-2 text-sm opacity-90">
-                        What are you looking for? Select the option that best
-                        describes your goal.
-                      </p>
-                    </ChatMessage>
-
-                    <div className="grid gap-3 mt-4">
-                      {GOALS.map((goal) => (
-                        <motion.button
-                          key={goal.value}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                          onClick={() => store.setGoal(goal.value as Goal)}
-                          className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
-                            store.goal === goal.value
-                              ? "border-accent bg-accent/5 shadow-sm"
-                              : "border-border bg-card hover:border-accent-light"
-                          }`}
-                        >
-                          <span className="text-2xl">{goal.icon}</span>
-                          <div>
-                            <p className="font-semibold text-foreground">
-                              {goal.label}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {goal.description}
-                            </p>
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Step 1: Country Selection */}
-                {store.currentStep === 1 && (
-                  <>
-                    <ChatMessage type="assistant">
-                      <p className="font-medium">Great choice! 🌍</p>
-                      <p className="mt-2 text-sm opacity-90">
-                        Which country interests you the most? Select one to continue.
-                      </p>
-                    </ChatMessage>
-
-                    {store.goal && (
-                      <ChatMessage type="user">
-                        <p className="text-sm">
-                          {GOALS.find((g) => g.value === store.goal)?.icon}{" "}
-                          {GOALS.find((g) => g.value === store.goal)?.label}
-                        </p>
-                      </ChatMessage>
-                    )}
-
-                    <WorldMap
-                      onSelect={(country) => store.setCountry(country as Country)}
-                      selected={store.country}
-                    />
-                  </>
-                )}
-
-                {/* Step 2: English Level */}
-                {store.currentStep === 2 && (
-                  <>
-                    <ChatMessage type="assistant">
-                      <p className="font-medium">
-                        {COUNTRIES.find((c) => c.code === store.country)?.flag}{" "}
-                        Excellent choice!
-                      </p>
-                      <p className="mt-2 text-sm opacity-90">
-                        What is your current English proficiency level?
-                      </p>
-                    </ChatMessage>
-
-                    <LanguageSelector
-                      label="Your English Level"
-                      value={store.englishLevel}
-                      onChange={(level) => store.setEnglishLevel(level as CEFRLevel)}
-                    />
-                  </>
-                )}
-
-                {/* Step 3: Native Language Level */}
-                {store.currentStep === 3 && (
-                  <>
-                    <ChatMessage type="assistant">
-                      <p className="font-medium">Perfect! 📝</p>
-                      <p className="mt-2 text-sm opacity-90">
-                        What is your current level in {getCountryLanguageName()}?
-                        If you&apos;re a complete beginner, select A1.
-                      </p>
-                    </ChatMessage>
-
-                    <LanguageSelector
-                      label={`Your ${getCountryLanguageName()} Level`}
-                      value={store.nativeLevel}
-                      onChange={(level) => store.setNativeLevel(level as CEFRLevel)}
-                    />
-                  </>
-                )}
-
-                {/* Step 4: Program Selection */}
-                {store.currentStep === 4 && (
-                  <>
-                    <ChatMessage type="assistant">
-                      <p className="font-medium">Here are programs for you! 🎯</p>
-                      <p className="mt-2 text-sm opacity-90">
-                        Based on your profile, these programs are available.
-                        Select the ones that interest you.
-                      </p>
-                    </ChatMessage>
-
-                    <div className="space-y-3 mt-4">
-                      {getFilteredCourses().map((course) => (
-                        <ProgramCard
-                          key={course.id}
-                          course={course}
-                          selected={store.selectedPrograms.includes(course.id)}
-                          onToggle={store.toggleProgram}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Step 5: Meeting Scheduling */}
-                {store.currentStep === 5 && (
-                  <>
-                    <ChatMessage type="assistant">
-                      <p className="font-medium">Almost done! 📅</p>
-                      <p className="mt-2 text-sm opacity-90">
-                        Let&apos;s schedule a meeting with our orientation experts to
-                        discuss your options in detail.
-                      </p>
-                    </ChatMessage>
-
-                    <TimeSlotPicker
-                      onSelect={store.setMeetingDatetime}
-                      selected={store.meetingDatetime}
-                    />
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation */}
-          <div className="flex justify-between mt-8 pt-4 border-t border-border">
-            <Button
-              variant="ghost"
-              onClick={store.prevStep}
-              disabled={store.currentStep === 0}
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
-
-            {store.currentStep < TOTAL_STEPS - 1 ? (
-              <Button onClick={store.nextStep} disabled={!canProceed()}>
-                Next
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            ) : (
-              <Button onClick={handleFinish} disabled={!canProceed() || saving}>
-                {saving ? (
-                  <>
+        {/* ========== INPUT BAR ========== */}
+        {/* Only show chat input during the conversation phases, not during program selection / scheduling */}
+        {store.phase !== "recommend" &&
+          store.phase !== "schedule_meeting" &&
+          !store.recommendationsShown && (
+            <div className="mt-3 shrink-0">
+              <div className="flex items-center gap-2 bg-card border border-border rounded-xl p-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your answer..."
+                  disabled={store.isLoading}
+                  className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground px-2 py-1.5"
+                />
+                <Button
+                  size="icon"
+                  onClick={sendMessage}
+                  disabled={!input.trim() || store.isLoading}
+                  className="shrink-0"
+                >
+                  {store.isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Finishing...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-1" />
-                    See My Results
-                  </>
-                )}
-              </Button>
-            )}
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-1.5">
+                Just type naturally — I&apos;ll understand! ✨
+              </p>
+            </div>
+          )}
+
+        {/* Start over button (always visible at bottom) */}
+        {store.messages.length > 0 && (
+          <div className="mt-2 text-center shrink-0">
+            <button
+              onClick={() => store.reset()}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Start over
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
