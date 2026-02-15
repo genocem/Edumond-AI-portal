@@ -56,7 +56,9 @@ export default function ProfilePage() {
   if (status === "loading" || profileQuery.isLoading) {
     return (
       <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading profile...</div>
+        <div className="animate-pulse text-muted-foreground">
+          Loading profile...
+        </div>
       </div>
     );
   }
@@ -123,7 +125,9 @@ export default function ProfilePage() {
                       <Mail className="h-3 w-3" />
                       {user.email}
                     </span>
-                    <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
+                    <Badge
+                      variant={user.role === "ADMIN" ? "default" : "secondary"}
+                    >
                       {user.role}
                     </Badge>
                   </div>
@@ -174,7 +178,9 @@ export default function ProfilePage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">{response.goal}</Badge>
-                            <Badge variant="secondary">{response.country}</Badge>
+                            <Badge variant="secondary">
+                              {response.country}
+                            </Badge>
                           </div>
                           <span className="text-xs text-muted-foreground">
                             {formatDate(response.createdAt)}
@@ -232,8 +238,8 @@ export default function ProfilePage() {
                               meeting.status === "SCHEDULED"
                                 ? "success"
                                 : meeting.status === "COMPLETED"
-                                ? "secondary"
-                                : "destructive"
+                                  ? "secondary"
+                                  : "destructive"
                             }
                           >
                             {meeting.status}
@@ -243,12 +249,15 @@ export default function ProfilePage() {
                           <div className="mt-2">
                             <a
                               href={createGoogleCalendarUrl({
-                                summary: "Digital Minds Orientation Meeting",
+                                summary: "EduBud Orientation Meeting",
                                 description:
-                                  "Your orientation consultation with Digital Minds advisors",
-                                startTime: new Date(meeting.datetime).toISOString(),
+                                  "Your orientation consultation with EduBud advisors",
+                                startTime: new Date(
+                                  meeting.datetime,
+                                ).toISOString(),
                                 endTime: new Date(
-                                  new Date(meeting.datetime).getTime() + 60 * 60 * 1000
+                                  new Date(meeting.datetime).getTime() +
+                                    60 * 60 * 1000,
                                 ).toISOString(),
                               })}
                               target="_blank"

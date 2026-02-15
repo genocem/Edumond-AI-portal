@@ -11,7 +11,12 @@ interface ProgramCardProps {
   matchScore?: number;
 }
 
-export function ProgramCard({ course, selected, onToggle, matchScore }: ProgramCardProps) {
+export function ProgramCard({
+  course,
+  selected,
+  onToggle,
+  matchScore,
+}: ProgramCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -31,9 +36,7 @@ export function ProgramCard({ course, selected, onToggle, matchScore }: ProgramC
       {/* Selection indicator */}
       <div
         className={`absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-          selected
-            ? "bg-accent border-accent"
-            : "border-border bg-card"
+          selected ? "bg-accent border-accent" : "border-border bg-card"
         }`}
       >
         {selected && <Check className="h-4 w-4 text-white" />}
@@ -41,14 +44,14 @@ export function ProgramCard({ course, selected, onToggle, matchScore }: ProgramC
 
       {/* Match score */}
       {matchScore !== undefined && (
-        <div className="absolute top-3 left-3">
+        <div className="">
           <span
             className={`text-xs font-bold px-2 py-1 rounded-full ${
               matchScore >= 80
                 ? "bg-success/10 text-success"
                 : matchScore >= 60
-                ? "bg-warning/10 text-warning"
-                : "bg-muted text-muted-foreground"
+                  ? "bg-warning/10 text-warning"
+                  : "bg-muted text-muted-foreground"
             }`}
           >
             {matchScore}% match

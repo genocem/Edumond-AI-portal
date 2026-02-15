@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import logo from "@/assets/logo.png";
 
 export function Footer() {
   return (
@@ -8,14 +10,13 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center">
-                <span className="text-white font-bold text-sm">DM</span>
-              </div>
-              <span className="font-bold text-lg text-foreground">Digital Minds</span>
+              <Image src={logo} alt="Altat" width={400} className="w-10 h-10" />
+              <span className="font-bold text-lg text-foreground">EduBud</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-md">
-              Helping students find the perfect study, training, and career programs abroad.
-              Your gateway to international education and opportunities.
+              Helping students find the perfect study, training, and career
+              programs abroad. Your gateway to international education and
+              opportunities.
             </p>
           </div>
 
@@ -24,17 +25,26 @@ export function Footer() {
             <h4 className="font-semibold text-foreground mb-3">Quick Links</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/questionnaire" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  href="/questionnaire"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Start Questionnaire
                 </Link>
               </li>
               <li>
-                <Link href="/auth/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  href="/auth/register"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Create Account
                 </Link>
               </li>
               <li>
-                <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link
+                  href="/auth/login"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Sign In
                 </Link>
               </li>
@@ -56,7 +66,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-border">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Digital Minds. All rights reserved.
+            © {new Date().getFullYear()} EduBud. All rights reserved.
           </p>
         </div>
       </div>

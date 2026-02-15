@@ -18,9 +18,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Digital Minds - Student Orientation Portal",
-  description: "Find the perfect study, training, and career programs abroad. Your gateway to international education and opportunities.",
-  keywords: ["study abroad", "orientation", "education", "Germany", "Italy", "Spain", "Belgium", "Turkey"],
+  title: "EduBud - Student Orientation Portal",
+  description:
+    "Find the perfect study, training, and career programs abroad. Your gateway to international education and opportunities.",
+  keywords: [
+    "study abroad",
+    "orientation",
+    "education",
+    "Germany",
+    "Italy",
+    "Spain",
+    "Belgium",
+    "Turkey",
+  ],
 };
 
 export default function RootLayout({

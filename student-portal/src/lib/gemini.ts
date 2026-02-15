@@ -7,9 +7,17 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 function getAllCourses(): CourseData[] {
   const courses: CourseData[] = [];
-  courses.push(...(coursesData.courses.language_courses as unknown as CourseData[]));
-  courses.push(...(coursesData.courses.test_preparation_courses as unknown as CourseData[]));
-  courses.push(...(coursesData.courses.other_training_categories as unknown as CourseData[]));
+  courses.push(
+    ...(coursesData.courses.language_courses as unknown as CourseData[]),
+  );
+  courses.push(
+    ...(coursesData.courses
+      .test_preparation_courses as unknown as CourseData[]),
+  );
+  courses.push(
+    ...(coursesData.courses
+      .other_training_categories as unknown as CourseData[]),
+  );
   return courses;
 }
 
@@ -52,7 +60,7 @@ export interface ChatMessage {
   content: string;
 }
 
-const SYSTEM_PROMPT = `You are the friendly orientation assistant for Digital Minds, a platform helping students find study, training, and career programs in Europe (Germany, Italy, Spain, Belgium, Turkey).
+const SYSTEM_PROMPT = `You are the friendly orientation assistant for EduBud, a platform helping students find study, training, and career programs in Europe (Germany, Italy, Spain, Belgium, Turkey).
 
 YOUR JOB: Guide the user through a natural conversation to understand their needs. You must collect this information one topic at a time, in order:
 
@@ -90,21 +98,30 @@ IMPORTANT: Always include the JSON block. Never skip it. The JSON must be the la
  */
 export async function guidedChat(
   messages: ChatMessage[],
-  currentData: ExtractedData
+  currentData: ExtractedData,
 ): Promise<GuidedResponse> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // Build context about what we already know
     const contextParts: string[] = [];
-    if (currentData.goal) contextParts.push(`Goal already set: ${currentData.goal}`);
-    if (currentData.country) contextParts.push(`Country already set: ${currentData.country}`);
-    if (currentData.englishLevel) contextParts.push(`English level already set: ${currentData.englishLevel}`);
-    if (currentData.nativeLevel) contextParts.push(`Native language level already set: ${currentData.nativeLevel}`);
+    if (currentData.goal)
+      contextParts.push(`Goal already set: ${currentData.goal}`);
+    if (currentData.country)
+      contextParts.push(`Country already set: ${currentData.country}`);
+    if (currentData.englishLevel)
+      contextParts.push(
+        `English level already set: ${currentData.englishLevel}`,
+      );
+    if (currentData.nativeLevel)
+      contextParts.push(
+        `Native language level already set: ${currentData.nativeLevel}`,
+      );
 
-    const contextNote = contextParts.length > 0
-      ? `\n\nAlready collected from user: ${contextParts.join(", ")}`
-      : "";
+    const contextNote =
+      contextParts.length > 0
+        ? `\n\nAlready collected from user: ${contextParts.join(", ")}`
+        : "";
 
     const chat = model.startChat({
       history: messages.slice(0, -1).map((msg) => ({
@@ -140,17 +157,21 @@ export async function getOpeningGreeting(): Promise<GuidedResponse> {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent({
-      contents: [{
-        role: "user",
-        parts: [{
-          text: `Generate a warm, brief welcome message (2-3 sentences) for a student arriving at our orientation platform. Then ask them what their main goal is — studying abroad, finding a job/Ausbildung, or professional training. Make it feel like a friendly conversation, not a form.
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Generate a warm, brief welcome message (2-3 sentences) for a student arriving at our orientation platform. Then ask them what their main goal is — studying abroad, finding a job/Ausbildung, or professional training. Make it feel like a friendly conversation, not a form.
 
 End with this JSON block:
 \`\`\`json
 {"phase":"ask_goal","goal":null,"country":null,"englishLevel":null,"nativeLevel":null}
-\`\`\``
-        }]
-      }],
+\`\`\``,
+            },
+          ],
+        },
+      ],
       generationConfig: { maxOutputTokens: 300, temperature: 0.8 },
       systemInstruction: {
         role: "user",
@@ -162,7 +183,8 @@ End with this JSON block:
   } catch (error) {
     console.error("Gemini greeting error:", error);
     return {
-      reply: "Hey there! 👋 Welcome to Digital Minds — I'm here to help you find the perfect program in Europe. So tell me, what brings you here? Are you looking to study abroad, find a job or Ausbildung, or pursue professional training?",
+      reply:
+        "Hey there! 👋 Welcome to EduBud — I'm here to help you find the perfect program in Europe. So tell me, what brings you here? Are you looking to study abroad, find a job or Ausbildung, or pursue professional training?",
       phase: "ask_goal",
       extracted: {},
     };
@@ -170,7 +192,10 @@ End with this JSON block:
 }
 
 /** Parse the AI response to extract the JSON data block. */
-function parseGuidedResponse(rawText: string, currentData: ExtractedData): GuidedResponse {
+function parseGuidedResponse(
+  rawText: string,
+  currentData: ExtractedData,
+): GuidedResponse {
   // Extract JSON block from the response
   const jsonMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/);
   let reply = rawText;
@@ -235,7 +260,7 @@ function inferPhase(data: ExtractedData): ConversationPhase {
 /** Fallback when AI is unavailable — drive the conversation locally. */
 function buildFallbackResponse(
   messages: ChatMessage[],
-  currentData: ExtractedData
+  currentData: ExtractedData,
 ): GuidedResponse {
   const lastMsg = messages[messages.length - 1]?.content.toLowerCase() || "";
 
@@ -244,22 +269,44 @@ function buildFallbackResponse(
 
   // Goal detection
   if (!extracted.goal) {
-    if (lastMsg.includes("study") || lastMsg.includes("university") || lastMsg.includes("abroad")) {
+    if (
+      lastMsg.includes("study") ||
+      lastMsg.includes("university") ||
+      lastMsg.includes("abroad")
+    ) {
       extracted.goal = "study_abroad";
-    } else if (lastMsg.includes("job") || lastMsg.includes("work") || lastMsg.includes("ausbildung") || lastMsg.includes("career")) {
+    } else if (
+      lastMsg.includes("job") ||
+      lastMsg.includes("work") ||
+      lastMsg.includes("ausbildung") ||
+      lastMsg.includes("career")
+    ) {
       extracted.goal = "job";
-    } else if (lastMsg.includes("training") || lastMsg.includes("skill") || lastMsg.includes("professional")) {
+    } else if (
+      lastMsg.includes("training") ||
+      lastMsg.includes("skill") ||
+      lastMsg.includes("professional")
+    ) {
       extracted.goal = "training";
     }
   }
 
   // Country detection
   if (!extracted.country && extracted.goal) {
-    if (lastMsg.includes("germany") || lastMsg.includes("german")) extracted.country = "germany";
-    else if (lastMsg.includes("italy") || lastMsg.includes("italian")) extracted.country = "italy";
-    else if (lastMsg.includes("spain") || lastMsg.includes("spanish")) extracted.country = "spain";
-    else if (lastMsg.includes("belgium") || lastMsg.includes("belgian") || lastMsg.includes("french")) extracted.country = "belgium";
-    else if (lastMsg.includes("turkey") || lastMsg.includes("turkish")) extracted.country = "turkey";
+    if (lastMsg.includes("germany") || lastMsg.includes("german"))
+      extracted.country = "germany";
+    else if (lastMsg.includes("italy") || lastMsg.includes("italian"))
+      extracted.country = "italy";
+    else if (lastMsg.includes("spain") || lastMsg.includes("spanish"))
+      extracted.country = "spain";
+    else if (
+      lastMsg.includes("belgium") ||
+      lastMsg.includes("belgian") ||
+      lastMsg.includes("french")
+    )
+      extracted.country = "belgium";
+    else if (lastMsg.includes("turkey") || lastMsg.includes("turkish"))
+      extracted.country = "turkey";
   }
 
   // Level detection
@@ -279,7 +326,8 @@ function buildFallbackResponse(
   let reply = "";
   switch (phase) {
     case "ask_goal":
-      reply = "I'd love to help! Could you tell me what you're looking for — studying abroad, finding a job or Ausbildung, or professional training? 🎯";
+      reply =
+        "I'd love to help! Could you tell me what you're looking for — studying abroad, finding a job or Ausbildung, or professional training? 🎯";
       break;
     case "ask_country":
       reply = `Great choice! 🌍 Now, which country are you interested in? We have programs in Germany, Italy, Spain, Belgium, and Turkey.`;
@@ -289,18 +337,23 @@ function buildFallbackResponse(
       break;
     case "ask_native": {
       const langNames: Record<string, string> = {
-        germany: "German", italy: "Italian", spain: "Spanish",
-        belgium: "French", turkey: "Turkish"
+        germany: "German",
+        italy: "Italian",
+        spain: "Spanish",
+        belgium: "French",
+        turkey: "Turkish",
       };
       const lang = langNames[extracted.country || ""] || "the local language";
       reply = `Got it! And how about your ${lang} level? If you're a complete beginner, that's totally fine — just say A1! 🗣️`;
       break;
     }
     case "recommend":
-      reply = "Perfect, I've got everything I need! Let me find the best programs for you... 🔍";
+      reply =
+        "Perfect, I've got everything I need! Let me find the best programs for you... 🔍";
       break;
     default:
-      reply = "Let me help you find the right program! What are you looking for?";
+      reply =
+        "Let me help you find the right program! What are you looking for?";
   }
 
   // Build recommendations if ready

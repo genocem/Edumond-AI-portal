@@ -12,7 +12,7 @@ export function DefaultAvatar({ size = "md" }: DefaultAvatarProps) {
       size={size}
       bgColor="#8B7E6A"
       accentColor="#D4C5B0"
-      label="Digital Minds Assistant"
+      label="EduBud Assistant"
       icon="🌍"
     />
   );

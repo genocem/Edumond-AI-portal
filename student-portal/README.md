@@ -1,4 +1,4 @@
-# 🎓 Digital Minds — Student Orientation Portal
+# 🎓 EduBud — Student Orientation Portal
 
 A modern, full-stack student orientation platform built with **Next.js 16**, **tRPC**, **Prisma**, and **Tailwind CSS**. The portal guides prospective students through a chatbot-style questionnaire to discover study, training, and career programs across Europe.
 
@@ -158,11 +158,13 @@ npm start
 ## 🎨 Design System
 
 ### Light Theme (Default)
+
 - **Background:** Beige `#F5F5DC` / White `#FFFFFF`
 - **Text:** Dark Brown `#2C2416`
 - **Accent:** Muted Gold `#8B7E6A`
 
 ### Dark Theme
+
 - **Background:** Dark Brown `#2C2416` / Charcoal `#1A1A1A`
 - **Text:** Warm White `#F5F0E8`
 - **Accent:** Warm Bronze `#6B5E4F`

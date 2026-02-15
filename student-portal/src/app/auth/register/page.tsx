@@ -144,7 +144,7 @@ export default function RegisterPage() {
           <CardDescription>
             {fromChat
               ? "Sign up to save your results & confirm your meeting"
-              : "Join Digital Minds and start your journey"}
+              : "Join EduBud and start your journey"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -163,8 +163,8 @@ export default function RegisterPage() {
                       {store.extracted.goal === "study_abroad"
                         ? "Study Abroad"
                         : store.extracted.goal === "job"
-                        ? "Job / Ausbildung"
-                        : "Professional Training"}
+                          ? "Job / Ausbildung"
+                          : "Professional Training"}
                     </span>
                   </li>
                 )}
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                           day: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        }
+                        },
                       )}
                     </span>
                   </li>
@@ -270,9 +270,7 @@ export default function RegisterPage() {
               {registerMutation.isPending || savingData ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {savingData
-                    ? "Saving your data..."
-                    : "Creating account..."}
+                  {savingData ? "Saving your data..." : "Creating account..."}
                 </>
               ) : fromChat ? (
                 "Create Account & Save Results"

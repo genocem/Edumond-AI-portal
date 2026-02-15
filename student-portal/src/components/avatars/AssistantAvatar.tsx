@@ -12,9 +12,13 @@ import { TurkeyAvatar } from "./TurkeyAvatar";
 interface AssistantAvatarProps {
   country: AvatarCountry;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
-const avatarComponents: Record<AvatarCountry, React.FC<{ size?: "sm" | "md" | "lg" }>> = {
+const avatarComponents: Record<
+  AvatarCountry,
+  React.FC<{ size?: "sm" | "md" | "lg" }>
+> = {
   default: DefaultAvatar,
   germany: GermanyAvatar,
   italy: ItalyAvatar,
@@ -23,7 +27,11 @@ const avatarComponents: Record<AvatarCountry, React.FC<{ size?: "sm" | "md" | "l
   turkey: TurkeyAvatar,
 };
 
-export function AssistantAvatar({ country, size = "md" }: AssistantAvatarProps) {
+export function AssistantAvatar({
+  country,
+  size = "md",
+  className,
+}: AssistantAvatarProps) {
   const AvatarComponent = avatarComponents[country] || DefaultAvatar;
 
   return (
@@ -34,6 +42,7 @@ export function AssistantAvatar({ country, size = "md" }: AssistantAvatarProps) 
         animate={{ scale: 1, opacity: 1, rotateY: 0 }}
         exit={{ scale: 0.8, opacity: 0, rotateY: -90 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
+        className={className}
       >
         <AvatarComponent size={size} />
       </motion.div>

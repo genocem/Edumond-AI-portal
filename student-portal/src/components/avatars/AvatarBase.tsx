@@ -12,15 +12,21 @@ interface AvatarBaseProps {
 
 const sizeMap = { sm: 60, md: 100, lg: 140 };
 
-export function AvatarBase({ size = "md", bgColor, accentColor, label, icon }: AvatarBaseProps) {
+export function AvatarBase({
+  size = "md",
+  bgColor,
+  accentColor,
+  label,
+  icon,
+}: AvatarBaseProps) {
   const s = sizeMap[size];
 
   return (
     <motion.div
-      className="relative flex items-center justify-center rounded-full shadow-lg"
+      className="relative flex items-center justify-center rounded-full shadow-lg w-full h-full"
       style={{
-        width: s,
-        height: s,
+        minWidth: s,
+        minHeight: s,
         background: `linear-gradient(135deg, ${bgColor}, ${accentColor})`,
       }}
       animate={{

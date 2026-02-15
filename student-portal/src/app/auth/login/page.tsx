@@ -125,7 +125,7 @@ export default function LoginPage() {
           <CardDescription>
             {fromChat
               ? "Sign in to save your results & confirm your meeting"
-              : "Sign in to your Digital Minds account"}
+              : "Sign in to your EduBud account"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,8 +144,8 @@ export default function LoginPage() {
                       {store.extracted.goal === "study_abroad"
                         ? "Study Abroad"
                         : store.extracted.goal === "job"
-                        ? "Job / Ausbildung"
-                        : "Professional Training"}
+                          ? "Job / Ausbildung"
+                          : "Professional Training"}
                     </span>
                   </li>
                 )}
